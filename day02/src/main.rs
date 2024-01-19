@@ -30,6 +30,7 @@ fn main() {
     log::info!("Sum of IDs of valid games: {}", sum_ids);
     log::info!("--------------------------------------------------------");
     log::info!("");
+    assert_eq!(sum_ids, 1734);
 }
 
 fn read_lines(filename: &str) -> Vec<String> {

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, result::Result, str::FromStr, error::Error, fmt};
+use std::{collections::HashMap, error::Error, fmt, result::Result, str::FromStr};
 use strum_macros::EnumString;
 
 #[derive(Debug)]
@@ -8,6 +8,8 @@ pub struct Game {
 }
 
 impl Game {
+    // A game line looks like this:
+    // Game 2: 3 red, 1 blue, 2 green; 1 blue, 9 green; 1 red, 10 green
     pub fn parse_game(line: &str) -> Result<Game, GameError> {
         let id_parts = line.split(":").collect::<Vec<&str>>();
         // get the id
@@ -48,11 +50,7 @@ impl Game {
             }
         }
 
-        let agame = Game {
-            id: id,
-            reveals: reveals,
-        };
-        Ok(agame)
+        Ok(Game { id, reveals })
     }
 
     pub fn is_valid(self: &Self, red: u16, green: u16, blue: u16) -> bool {
