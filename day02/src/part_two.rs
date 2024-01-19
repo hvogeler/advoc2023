@@ -1,7 +1,7 @@
 use log;
 use std::{env, fs::read_to_string};
-use crate::game::Game;
 
+use crate::game::{Game, CubeColor};
 pub mod game;
 
 fn main() {
@@ -11,15 +11,16 @@ fn main() {
     env_logger::init();
 
     let lines = read_lines("/Users/hvo/rust/advoc2023/day02/data/data.txt");
-    let mut sum_ids = 0;
-    log::info!("Advent of code 2023 - Day 02");
+    let mut prod_color_counts: u64 = 0;
+    log::info!("Advent of code 2023 - Day 02 Part 2");
     for line in lines.iter() {
-        let game = Game::parse_game(&line);
-        match game {
-            Ok(_game) => {
-                if _game.is_valid(12, 13, 14) {
-                    sum_ids += _game.id;
-                }
+        let game_result = Game::parse_game(&line);
+        match game_result {
+            Ok(game) => {
+                let red_max = game.get_max_cube_per_color(CubeColor::Red);
+                let green_max = game.get_max_cube_per_color(CubeColor::Green);
+                let blue_max = game.get_max_cube_per_color(CubeColor::Blue);
+                prod_color_counts += u64::from(red_max) * u64::from(green_max) * u64::from(blue_max);
             }
             Err(e) => log::warn!("Result maybe wrong: {}", e),
         }
@@ -27,10 +28,10 @@ fn main() {
 
     log::info!("");
     log::info!("--------------------------------------------------------");
-    log::info!("Sum of IDs of valid games: {}", sum_ids);
+    log::info!("Sum products of color cubes: {}", prod_color_counts);
     log::info!("--------------------------------------------------------");
     log::info!("");
-    assert_eq!(sum_ids, 1734);
+    assert_eq!(prod_color_counts, 70387);
 }
 
 fn read_lines(filename: &str) -> Vec<String> {

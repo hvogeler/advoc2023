@@ -1,5 +1,5 @@
 use std::{collections::HashMap, error::Error, fmt, result::Result, str::FromStr};
-use strum_macros::EnumString;
+use strum_macros::{EnumString, Display};
 
 #[derive(Debug)]
 pub struct Game {
@@ -61,6 +61,19 @@ impl Game {
         }
         true
     }
+
+    pub fn get_max_cube_per_color(self: &Self, cube_color: CubeColor) -> u16 {
+        let mut max: u16 = 0;
+        for reveal in &self.reveals {
+            match cube_color {
+                CubeColor::Red => max = if reveal.red > max {reveal.red} else {max},
+                CubeColor::Green => max = if reveal.green > max {reveal.green} else {max},
+                CubeColor::Blue => max = if reveal.blue > max {reveal.blue} else {max},
+            }
+        }
+        max
+    }
+
 }
 
 #[derive(Debug)]
@@ -76,9 +89,9 @@ impl fmt::Display for GameError {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, Display)]
 #[strum(ascii_case_insensitive)]
-enum CubeColor {
+pub enum CubeColor {
     Red,
     Green,
     Blue,
