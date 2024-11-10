@@ -1,5 +1,14 @@
 use std::{error::Error, fs, path::Path};
 
+fn main() -> Result<(), Box<dyn Error>> {
+    let example_data = read_test_data(Path::new("./day03/example.dat"))?;
+    let mut schematic: Vec<Vec<char>> = Vec::new();
+
+    println!("{}", example_data);
+    Ok(())
+}
+
+
 const DOT: char = '.';
 
 #[derive(Debug)]
@@ -7,6 +16,9 @@ struct Schematic {
     data: Vec<Vec<char>>,
     number_tokens: Vec<NumberToken>,
     symbol_tokens: Vec<SymbolToken>,
+    // Todo: remove number- and symbol-tokens and add
+    // part_numbers: Vec<usize>,
+    // gears: Vec<Gear>,
 }
 
 impl Schematic {
@@ -136,14 +148,6 @@ impl SymbolToken {
             col,
         }
     }
-}
-
-fn main() -> Result<(), Box<dyn Error>> {
-    let example_data = read_test_data(Path::new("./day03/example.dat"))?;
-    let mut schematic: Vec<Vec<char>> = Vec::new();
-
-    println!("{}", example_data);
-    Ok(())
 }
 
 fn read_test_data(path: &Path) -> Result<String, Box<dyn Error>> {
