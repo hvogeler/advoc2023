@@ -1,0 +1,14 @@
+[package]
+name = "day03"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[[bin]]
+name = "day03p1"
+path = "src/part_one.rs"
+
+# [[bin]]
+# name = "part_two"
+# path = "src/part_two.rs"

@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "part_one"
+name = "day02p1"
 path = "src/part_one.rs"
 
 [[bin]]
-name = "part_two"
+name = "day02p2"
 path = "src/part_two.rs"
 
 
