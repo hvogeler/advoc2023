@@ -1,13 +1,21 @@
-use std::usize;
+use std::{collections::HashSet, usize};
 
 #[derive(Debug, Default)]
 pub struct Card {
     pub card_no: usize,
-    pub wins: Vec<usize>,
-    pub played: Vec<usize>,
+    pub wins: HashSet<usize>,
+    pub played: HashSet<usize>,
 }
 
 impl Card {
+    pub fn correct_numbers(&self) -> Vec<usize> {
+        self.wins.intersection(&self.played).cloned().collect()
+    }
+
+    pub fn score(&self) -> usize {
+        2u32.pow((self.correct_numbers().len() - 1) as u32) as usize
+    }
+
     pub fn from_card_string(card_str: &str) -> Result<Self, ParseError> {
         let tokens = lexer(card_str)?;
         let mut card = Self {
@@ -25,9 +33,9 @@ impl Card {
             }
             if let Token::Number(n) = tokens[i] {
                 if is_winner {
-                    card.wins.push(n);
+                    card.wins.insert(n);
                 } else {
-                    card.played.push(n);
+                    card.played.insert(n);
                 }
             }
         }
@@ -145,7 +153,10 @@ mod tests {
     fn test_card() {
         let card = Card::from_card_string(test_card_1).unwrap();
         println!("CARD: {:?}", card);
+        println!("Correct Numbers: {:?}", card.correct_numbers());
         assert_eq!(card.wins.len(), 5);
+        assert_eq!(card.score(), 8);
+        
     }
     const test_card_1: &'static str = r"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53";
 }
