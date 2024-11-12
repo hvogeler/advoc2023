@@ -13,7 +13,11 @@ impl Card {
     }
 
     pub fn score(&self) -> usize {
-        2u32.pow((self.correct_numbers().len() - 1) as u32) as usize
+        if self.correct_numbers().len() == 0 {
+            0
+        } else {
+            2u32.pow((self.correct_numbers().len() - 1) as u32) as usize
+        }
     }
 
     pub fn from_card_string(card_str: &str) -> Result<Self, ParseError> {
@@ -156,7 +160,6 @@ mod tests {
         println!("Correct Numbers: {:?}", card.correct_numbers());
         assert_eq!(card.wins.len(), 5);
         assert_eq!(card.score(), 8);
-        
     }
     const test_card_1: &'static str = r"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53";
 }
