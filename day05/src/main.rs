@@ -1,15 +1,36 @@
-use std::path::Path;
+use std::{i64, path::Path};
 
 use common::read_test_data;
 
 fn main() {
+    // -------------- Part 1 --------------------
     let test_data = read_test_data(Path::new("./day05/testdata.dat")).unwrap();
     let map_chain = MapChain::from_str(&test_data);
-    let seeds = get_seeds(&test_data);
-    let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(seed)).collect();
+    let seeds = &get_seeds(&test_data);
+    let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(*seed)).collect();
     println!("Locations: {:?}", locations);
     let min = locations.iter().reduce(|acc, v| if v < acc {v} else {acc}).unwrap();
     println!("  Minimum location: {}", min);
+
+    // -------------- Part 2 --------------------
+    let mut seed_count = 0;
+    for i in (0..seeds.len()).step_by(2) {
+        seed_count += seeds[i+1];
+    }
+    println!("Number of seeds: {}", seed_count);
+    let mut fortschritt = 0i64;
+    let mut min_loc = i64::MAX;
+    for i in (0..seeds.len()).step_by(2) {
+        for j in seeds[i]..(seeds[i]+seeds[i+1]) {
+            fortschritt += 1;
+            let loc = map_chain.map(j);
+            if loc < min_loc {
+                min_loc = loc;
+            }
+        }
+        println!("Fortschritt: {} of {}: {}%", fortschritt, seed_count, fortschritt * 100 / seed_count);
+    }
+    println!("Minimum Location for Part2: {}", min_loc);
 }
 
 pub fn get_seeds(data: &str) -> Vec<i64> {
@@ -37,11 +58,11 @@ pub struct MapChain {
 impl MapChain {
 
     pub fn map(&self, v: i64) -> i64 {
-        println!("Start: {}", v);
+        // println!("Start: {}", v);
         let mut map_staged = v;
         for map in &self.maps {
             map_staged = map.map(map_staged);
-            println!("  Map {}: -> {}", map.name(), map_staged);
+            // println!("  Map {}: -> {}", map.name(), map_staged);
         }
         map_staged
     }
@@ -172,6 +193,11 @@ mod tests {
         let seeds = get_seeds(&test_data);
         println!("Seeds: {:?}", seeds);
         assert_eq!(seeds.len(), 4);
+        for i in (0..seeds.len()).step_by(2) {
+            for j in seeds[i]..(seeds[i]+seeds[i+1]) {
+                println!("seed: {}", j);
+            }
+        }
     }
 
     #[test]
