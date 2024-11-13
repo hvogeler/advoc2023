@@ -2,7 +2,7 @@ use std::{collections::HashSet, usize};
 
 #[derive(Debug, Default)]
 pub struct Card {
-    pub card_no: usize,
+    pub _card_no: usize,
     pub wins: HashSet<usize>,
     pub played: HashSet<usize>,
 }
@@ -23,7 +23,7 @@ impl Card {
     pub fn from_card_string(card_str: &str) -> Result<Self, ParseError> {
         let tokens = lexer(card_str)?;
         let mut card = Self {
-            card_no: if let Token::Number(n) = tokens[1] {
+            _card_no: if let Token::Number(n) = tokens[1] {
                 n
             } else {
                 0
@@ -53,8 +53,6 @@ pub enum Token {
     Colon,
     Pipe,
     Number(usize),
-    WinningNumber(usize),
-    PlayedNumber(usize),
 }
 
 #[derive(Debug, Default)]
@@ -148,18 +146,18 @@ mod tests {
 
     #[test]
     fn test_parse_card() {
-        let tokens = lexer(test_card_1).unwrap();
+        let tokens = lexer(TEST_CARD_1).unwrap();
         println!("TOKENS: {:?}", tokens);
         assert_eq!(tokens.len(), 17);
     }
 
     #[test]
     fn test_card() {
-        let card = Card::from_card_string(test_card_1).unwrap();
+        let card = Card::from_card_string(TEST_CARD_1).unwrap();
         println!("CARD: {:?}", card);
         println!("Correct Numbers: {:?}", card.correct_numbers());
         assert_eq!(card.wins.len(), 5);
         assert_eq!(card.score(), 8);
     }
-    const test_card_1: &'static str = r"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53";
+    const TEST_CARD_1: &'static str = r"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53";
 }
