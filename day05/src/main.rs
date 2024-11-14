@@ -1,36 +1,74 @@
-use std::{i64, path::Path};
+use std::{error::Error, i64, path::Path, time::Instant};
 
 use common::read_test_data;
+use tokio::{join, task::JoinSet};
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     // -------------- Part 1 --------------------
+    println!("****************************************************************");
+    println!("* Day 05  -  Part 1                                            *");
+    println!("****************************************************************");
     let test_data = read_test_data(Path::new("./day05/testdata.dat")).unwrap();
     let map_chain = MapChain::from_str(&test_data);
-    let seeds = &get_seeds(&test_data);
-    let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(*seed)).collect();
+    let seeds = get_seeds(&test_data);
+    let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(seed)).collect();
     println!("Locations: {:?}", locations);
-    let min = locations.iter().reduce(|acc, v| if v < acc {v} else {acc}).unwrap();
+    let min = locations
+        .iter()
+        .reduce(|acc, v| if v < acc { v } else { acc })
+        .unwrap();
     println!("  Minimum location: {}", min);
 
     // -------------- Part 2 --------------------
+    println!("");
+    println!("****************************************************************");
+    println!("* Day 05  -  Part 2                                            *");
+    println!("****************************************************************");
+    let seeds = get_seeds(&test_data);
     let mut seed_count = 0;
     for i in (0..seeds.len()).step_by(2) {
-        seed_count += seeds[i+1];
+        seed_count += seeds[i + 1];
     }
     println!("Number of seeds: {}", seed_count);
-    let mut fortschritt = 0i64;
-    let mut min_loc = i64::MAX;
+    let mut join_set = JoinSet::new();
+
     for i in (0..seeds.len()).step_by(2) {
-        for j in seeds[i]..(seeds[i]+seeds[i+1]) {
-            fortschritt += 1;
-            let loc = map_chain.map(j);
-            if loc < min_loc {
-                min_loc = loc;
-            }
+        {
+            let start_seed = seeds[i];
+            let end_seed = start_seed + seeds[i + 1];
+            let map_chain = map_chain.clone();
+            join_set.spawn(async move {
+                println!("{}. Spawning seeds: {} - {}, length: {}", (i+2)/2, start_seed, end_seed, end_seed - start_seed);
+                let mut min_loc = i64::MAX;
+                for j in start_seed..end_seed {
+                    let loc = &map_chain.map(j);
+                    if loc < &min_loc {
+                        min_loc = *loc;
+                    }
+                }
+                min_loc
+            });
         }
-        println!("Fortschritt: {} of {}: {}%", fortschritt, seed_count, fortschritt * 100 / seed_count);
     }
-    println!("Minimum Location for Part2: {}", min_loc);
+
+    // let results = join_set.join_all().await;
+    let start = Instant::now();
+    let mut cnt = 0;
+    let mut min_loc = i64::MAX;
+    while let Some(result) = join_set.join_next().await {
+        let min_of_seed = result.unwrap();
+        cnt += 1;
+        println!("{}. Process finished. min_loc: {}", cnt, min_of_seed);
+        if min_of_seed < min_loc {
+            min_loc = min_of_seed;
+        }
+    }
+
+    println!("Result of Day05 part2: {}", min_loc);
+    println!("Process took {} seconds", start.elapsed().as_secs());
+
+    Ok(())
 }
 
 pub fn get_seeds(data: &str) -> Vec<i64> {
@@ -56,7 +94,6 @@ pub struct MapChain {
 }
 
 impl MapChain {
-
     pub fn map(&self, v: i64) -> i64 {
         // println!("Start: {}", v);
         let mut map_staged = v;
@@ -99,9 +136,7 @@ impl MapChain {
         }
         map_chain
     }
-
 }
-
 
 #[derive(Debug, Default, Clone)]
 pub struct NamedMap {
@@ -121,7 +156,9 @@ impl NamedMap {
     pub fn map(&self, v: i64) -> i64 {
         for map_entry in &self.map_entries {
             let mapped_value = map_entry.map(v);
-            if mapped_value != v { return mapped_value; }
+            if mapped_value != v {
+                return mapped_value;
+            }
         }
         v
     }
@@ -178,7 +215,10 @@ mod tests {
         let map_chain = MapChain::from_str(&test_data);
         let seeds = get_seeds(&test_data);
         let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(seed)).collect();
-        let min = locations.iter().reduce(|acc, v| if v < acc {v} else {acc}).unwrap();
+        let min = locations
+            .iter()
+            .reduce(|acc, v| if v < acc { v } else { acc })
+            .unwrap();
         assert_eq!(map_chain.map(79), 82);
         println!("Locations: {:?}", locations);
         println!("  Minimum location: {}", min);
@@ -194,7 +234,7 @@ mod tests {
         println!("Seeds: {:?}", seeds);
         assert_eq!(seeds.len(), 4);
         for i in (0..seeds.len()).step_by(2) {
-            for j in seeds[i]..(seeds[i]+seeds[i+1]) {
+            for j in seeds[i]..(seeds[i] + seeds[i + 1]) {
                 println!("seed: {}", j);
             }
         }
@@ -216,7 +256,7 @@ mod tests {
         assert_eq!(maps[1].name(), "soil-to-fertilizer");
         assert_eq!(maps[2].map_entries().len(), 4);
         assert_eq!(maps[2].map_entries()[2].target_start, 42);
-        
+
         assert_eq!(maps[0].map(14), 14);
         assert_eq!(maps[0].map(79), 81);
         assert_eq!(maps[0].map(55), 57);
