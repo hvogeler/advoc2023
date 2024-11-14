@@ -1,7 +1,8 @@
 use std::{error::Error, i64, path::Path, time::Instant};
 
 use common::read_test_data;
-use tokio::{join, task::JoinSet};
+use num_format::{Locale, ToFormattedString};
+use tokio::task::JoinSet;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -9,16 +10,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("****************************************************************");
     println!("* Day 05  -  Part 1                                            *");
     println!("****************************************************************");
-    let test_data = read_test_data(Path::new("./day05/testdata.dat")).unwrap();
+    let test_data = read_test_data(Path::new("./testdata.dat")).unwrap();
     let map_chain = MapChain::from_str(&test_data);
     let seeds = get_seeds(&test_data);
     let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(seed)).collect();
-    println!("Locations: {:?}", locations);
+    println!("Locations: {:?}", locations.iter().map(|n| n.to_formatted_string(&Locale::de)).map(|s| s + " | ").collect::<String>());
     let min = locations
         .iter()
         .reduce(|acc, v| if v < acc { v } else { acc })
         .unwrap();
-    println!("  Minimum location: {}", min);
+    println!("  Minimum location: {}", min.to_formatted_string(&Locale::de));
 
     // -------------- Part 2 --------------------
     println!("");
@@ -30,7 +31,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     for i in (0..seeds.len()).step_by(2) {
         seed_count += seeds[i + 1];
     }
-    println!("Number of seeds: {}", seed_count);
+    println!("Number of seeds: {:>14}", seed_count.to_formatted_string(&Locale::de));
     let mut join_set = JoinSet::new();
 
     for i in (0..seeds.len()).step_by(2) {
@@ -39,7 +40,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let end_seed = start_seed + seeds[i + 1];
             let map_chain = map_chain.clone();
             join_set.spawn(async move {
-                println!("{}. Spawning seeds: {} - {}, length: {}", (i+2)/2, start_seed, end_seed, end_seed - start_seed);
+                println!("{:>3}. Spawning seeds: {:>14} - {:>14}, length: {:>14}", 
+                (i+2)/2, 
+                start_seed.to_formatted_string(&Locale::de), 
+                end_seed.to_formatted_string(&Locale::de), 
+                (end_seed - start_seed).to_formatted_string(&Locale::de));
                 let mut min_loc = i64::MAX;
                 for j in start_seed..end_seed {
                     let loc = &map_chain.map(j);
@@ -59,13 +64,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     while let Some(result) = join_set.join_next().await {
         let min_of_seed = result.unwrap();
         cnt += 1;
-        println!("{}. Process finished. min_loc: {}", cnt, min_of_seed);
+        println!("{:>3}. Process finished. min_loc: {:>14}", cnt, min_of_seed.to_formatted_string(&Locale::de));
         if min_of_seed < min_loc {
             min_loc = min_of_seed;
         }
     }
 
-    println!("Result of Day05 part2: {}", min_loc);
+    println!("Result of Day05 part2: {}", min_loc.to_formatted_string(&Locale::de));
     println!("Process took {} seconds", start.elapsed().as_secs());
 
     Ok(())
