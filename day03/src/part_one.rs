@@ -1,10 +1,10 @@
-use std::{error::Error, path::Path};
-use common::read_test_data;
+use std::{path::Path};
+use common::{read_test_data, Error};
 use schematic::{Gear, PartNumber, Schematic, TokenType};
 
 mod schematic;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Error> {
     // Example
     let example_data = read_test_data(Path::new("./day03/example.dat"))?;
     let schematic = Schematic::from_string(&example_data);

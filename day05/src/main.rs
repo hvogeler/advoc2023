@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("****************************************************************");
     println!("* Day 05  -  Part 1                                            *");
     println!("****************************************************************");
-    let test_data = read_test_data(Path::new("./testdata.dat")).unwrap();
+    let test_data = read_test_data(&Path::new("./testdata.dat")).unwrap();
     let map_chain = MapChain::from_str(&test_data);
     let seeds = get_seeds(&test_data);
     let locations: Vec<i64> = seeds.into_iter().map(|seed| map_chain.map(seed)).collect();
