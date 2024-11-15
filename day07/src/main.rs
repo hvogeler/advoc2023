@@ -1,6 +1,4 @@
-use std::{
-    collections::HashMap, path::Path, str::FromStr,
-};
+use std::{collections::HashMap, path::Path, str::FromStr};
 
 use common::{read_test_data, Error};
 use strum::VariantArray;
@@ -19,19 +17,13 @@ fn main() -> Result<(), Error> {
     let pkg_name = env!("CARGO_PKG_NAME");
     // -------------- Part 1 --------------------
     info!("****************************************************************");
-    info!(
-        "* {}  -  Part 1                                             *",
-        pkg_name
-    );
+    info!("* {}  -  Part 1                                             *", pkg_name);
     info!("****************************************************************");
     let test_data = read_test_data(Path::new("./day07/example.dat"))?;
 
     // -------------- Part 2 --------------------
     info!("****************************************************************");
-    info!(
-        "* {}  -  Part 2                                             *",
-        pkg_name
-    );
+    info!("* {}  -  Part 2                                             *", pkg_name);
     info!("****************************************************************");
 
     Ok(())
@@ -76,7 +68,7 @@ impl Hands {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 struct Hand {
     cards: [Card; 5],
     bid: i64,
@@ -95,9 +87,66 @@ impl Hand {
         hand.bid = parts.next().unwrap().parse().unwrap();
         Ok(hand)
     }
+
+    pub fn score(&self) -> HandType {
+        let mut card_counts: HashMap<Card, i64> = HashMap::new();
+        for i in 0..self.cards.len() {
+            if card_counts.contains_key(&self.cards[i]) {
+                let count = card_counts.get_mut(&self.cards[i]).unwrap();
+                *count += 1;
+            } else {
+                card_counts.insert(self.cards[i].clone(), 1);
+            }
+        }
+        let mut res: Vec<i64> = card_counts.values().cloned().collect();
+        res.sort();
+        res.reverse();
+
+        if res.len() == 1 {
+            return HandType::FiveOfAKind;
+        }
+        if res.len() == 5 {
+            return HandType::HighCard;
+        }
+        if res.len() == 2 {
+            if res[0] == 3 {
+                return HandType::FullHouse;
+            }
+            if res[0] == 4 {
+                return HandType::FourOfAKind;
+            }
+        }
+        if res.len() == 3 {
+            if res[0] == 3 {
+                return HandType::ThreeOfAKind;
+            }
+            if res[0] == 2 {
+                return HandType::TwoPair;
+            }
+        }
+        if res.len() == 4 {
+            return HandType::OnePair;
+        }
+        HandType::Nothing
+    }
 }
 
-#[derive(Debug, Default, PartialEq)]
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let score_self = self.score();
+        let score_other = other.score();
+
+        if self.cards[0].prio < other.cards[0].prio {
+            return Some(std::cmp::Ordering::Less);
+        }
+        if self.cards[0].prio > other.cards[0].prio {
+            return Some(std::cmp::Ordering::Greater);
+        }
+        Some(std::cmp::Ordering::Equal)
+    }
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
 pub struct Card {
     face: CardFace,
     prio: i64,
@@ -157,7 +206,6 @@ impl CardFace {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,7 +220,51 @@ mod tests {
     }
 
     #[test]
-    fn test_calc_win_limits() {
+    fn test_score() {
+        let test_data = read_test_data(Path::new("./example.dat")).unwrap();
+        let hands = Hands::from_str(&test_data).unwrap();
+        for hand in hands.hands.iter() {
+            println!("{:?}", hand.score());
+        }
+        let scores: Vec<HandType> = hands.hands.iter().map(|hand| hand.score()).collect();
+        assert_eq!(
+            scores,
+            vec![
+                HandType::OnePair,
+                HandType::ThreeOfAKind,
+                HandType::TwoPair,
+                HandType::TwoPair,
+                HandType::ThreeOfAKind
+            ]
+        );
+
+        let more_hands = Hands::from_str(
+            r#"TTTTT 1
+34567 8
+T2TTT 2
+32323 2
+"#,
+        )
+        .unwrap();
+        let scores: Vec<HandType> = more_hands.hands.iter().map(|hand| hand.score()).collect();
+        assert_eq!(scores[0], HandType::FiveOfAKind);
+        assert_eq!(scores[1], HandType::HighCard);
+        assert_eq!(scores[2], HandType::FourOfAKind);
+        assert_eq!(scores[3], HandType::FullHouse);
+    }
+
+    #[test]
+    fn test_hands_2() {
+        let test_data = read_test_data(Path::new("./example.dat")).unwrap();
+        let hands = Hands::from_str(&test_data).unwrap();
+        assert!(hands.hands[0] < hands.hands[1]);
+        assert!(hands.hands[0] <= hands.hands[0]);
+        assert!(hands.hands[0] == hands.hands[0]);
+        assert!(hands.hands[2] > hands.hands[1]);
+    }
+
+    #[test]
+    fn test_hands_1() {
         let test_data = read_test_data(Path::new("./example.dat")).unwrap();
         let hands = Hands::from_str(&test_data).unwrap();
         for (i, hand) in hands.hands.iter().enumerate() {
