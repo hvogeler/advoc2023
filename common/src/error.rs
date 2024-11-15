@@ -23,3 +23,9 @@ impl From<ParseIntError> for Error {
         Error::GenericError(v.to_string())
     }
 }
+
+impl From<strum::ParseError> for Error {
+    fn from(v: strum::ParseError) -> Self {
+        Error::GenericError(v.to_string())
+    }
+}
