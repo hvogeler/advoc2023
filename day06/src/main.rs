@@ -7,7 +7,7 @@ fn main() -> Result<(), Error> {
     println!("****************************************************************");
     println!("* Day 06  -  Part 1                                            *");
     println!("****************************************************************");
-    let test_data = read_test_data(Path::new("./day06/testdata.dat"))?;
+    let test_data = read_test_data(Path::new("./testdata.dat"))?;
     let season = Season::from_str(&test_data).unwrap();
     println!("{:?}", season);
     println!("Complete combinations: {}", season.winning_combinations());
@@ -16,7 +16,7 @@ fn main() -> Result<(), Error> {
     println!("****************************************************************");
     println!("* Day 06  -  Part 2                                            *");
     println!("****************************************************************");
-    let test_data = read_test_data(Path::new("./day06/testdata.dat"))?;
+    let test_data = read_test_data(Path::new("./testdata.dat"))?;
     let season = Season::from_str2(&test_data).unwrap();
     println!("Complete combinations: {}", season.winning_combinations());
 
